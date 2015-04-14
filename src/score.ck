@@ -7,6 +7,7 @@
  "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
   "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog" ]@=> string words[];
 
+
 words.size() => int start_size;
 int chunk_idx[start_size][0]; // indexes words to chunks
 5::minute => dur whisper_dur;
@@ -75,7 +76,7 @@ while( words.size() > 0  ) {
     we.broadcast();
 
     // choose chunk to play 
-    if( words.size() <= start_size && wr.chunks.size() > 0) {
+    if( /* some condition pertaining to the list of words*/wr.chunks.size() > 1 && chunk_idx[wIdx].size()-1 >= 0 ) {
         Math.random2(0, chunk_idx[wIdx].size()-1) => chunk_choice;        
         spork ~ play_whisper( chunk_idx[wIdx][chunk_choice] );
     }
@@ -136,6 +137,7 @@ while( words.size() > 0  ) {
     chout <= "\n\t---------------------------\n";chout.flush();
     pCount++;
 }
+
 now => runEnd;
 runEnd - runStart => runTime;
 <<< "\n\tTOTAL RUNTIME:", runTime/second,"seconds", "" >>>;
@@ -145,6 +147,7 @@ fun void record_listen( WhisperEvent e ) {
     while( true ) {
         e => now;
         wr.record_chunk(e.record_length, e.record_size);
+        <<< e.chunk_id, chunk_idx.size(), "" >>>;
         chunk_idx[e.chunk_id] << wr.chunks.size()-1;
     }
 }
