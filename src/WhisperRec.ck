@@ -10,25 +10,35 @@ public class WhisperRec extends Chubgraph {
     fun void init( dur duration ) {
         l.duration( duration );
     }
-    fun void chunk_in_order( dur chunk[] ) {
+    fun void chunk_in_order( int chunk_id ) {
         <<< "chunk in order!","">>>;
+        chunks[chunk_id] @=> dur chunk[];
+        l.rate(1);
         for( int i; i < chunk.size()-1; i++ )
             play( chunk[i], chunk[i+1] );
     }
     
     // play a random part of a chunk
-    fun void sub_chunk( int num_chunks ) {
+    fun void sub_chunk( int chunk_id ) {
         <<< "sub chunk!","" >>>;
-        int chunk_idx, start_idx, end_idx;
+        int chunk_idx, start_idx, end_idx, num_chunks;
         dur chunk[];
-        Math.random2(0, chunks.size()-1) => chunk_idx;
-        chunks[chunk_idx] @=> chunk;
+        chunks[chunk_id] @=> chunk;
+        chunk.size() => num_chunks;
         
         for( int i; i < num_chunks; i++ ) {
-            Math.random2(0, chunk.size()-2) => start_idx;
-            Math.random2(start_idx+1, chunk.size()-1) => end_idx;
-            
-            play( chunk[start_idx], chunk[end_idx] );
+            while( start_idx == end_idx ) {
+                Math.random2(0, num_chunks-1) => start_idx;
+                Math.random2(0, num_chunks-1) => end_idx;
+            }
+
+            if( end_idx > start_idx ) {
+                l.rate(1);
+                play( chunk[start_idx], chunk[end_idx] );
+            } else {
+                l.rate(-1);
+                play( chunk[end_idx], chunk[start_idx] );
+            }
         }
     }
     

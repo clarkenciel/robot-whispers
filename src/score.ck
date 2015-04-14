@@ -7,6 +7,19 @@
  "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
   "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog" ]@=> string words[];
 
+words.size() => int start_size;
+int chunk_idx[start_size][0]; // indexes words to chunks
+5::minute => dur whisper_dur;
+
+if( me.args() )
+    Std.atof(me.arg(0))::minute => whisper_dur;
+else
+    <<< "FYI: You may set your whisper duration with an argument. DEFAULT IS 5 MIN","">>>;
+
+WhisperRec wr;
+WhisperEvent we;
+
+wr.init(whisper_dur);
 adc => FFT fft => blackhole;
 UAnaBlob blob;
 
@@ -16,7 +29,7 @@ float res[0];
 float sums[0];
 float sum, maxVal, div;
 time later, runStart, runEnd;
-int c, idx, maxIdx, wIdx, N, win, frames, pCount;
+int c, idx, maxIdx, wIdx, N, win, frames, pCount, chunk_choice;
 dur runTime;
 string word;
 
@@ -29,7 +42,9 @@ for( 3 => int i; i > 0; i-- ) {
     second => now;
 }
 now => runStart;
+
 //----------------PIECE--------------------
+spork ~ record_listen( we );
 
 while( words.size() > 0  ) {
     words[wIdx] => word;
@@ -47,7 +62,24 @@ while( words.size() > 0  ) {
     0 => idx;
     0 => c;
 
+    for( 3 => int i; i > 0; i-- ) {
+        <<< i,". . .", "" >>>;
+        div::second => now;
+    }
+
     <<< "\n\t\t\t...NOW! ("+Std.ftoa(div,2)+" seconds)","" >>>;
+    // set up chunk recorder
+    div::second => we.record_length;
+    word.length() => we.record_size;
+    wIdx => we.chunk_id; 
+    we.broadcast();
+
+    // choose chunk to play 
+    if( words.size() <= start_size && wr.chunks.size() > 0) {
+        Math.random2(0, chunk_idx[wIdx].size()-1) => chunk_choice;        
+        spork ~ play_whisper( chunk_idx[wIdx][chunk_choice] );
+    }
+
     while( now < later ) {
         win::samp => now;
 
@@ -107,3 +139,20 @@ while( words.size() > 0  ) {
 now => runEnd;
 runEnd - runStart => runTime;
 <<< "\n\tTOTAL RUNTIME:", runTime/second,"seconds", "" >>>;
+
+// FUNCS
+fun void record_listen( WhisperEvent e ) {
+    while( true ) {
+        e => now;
+        wr.record_chunk(e.record_length, e.record_size);
+        chunk_idx[e.chunk_id] << wr.chunks.size()-1;
+    }
+}
+
+fun void play_whisper( int chunk_id ) {
+    Math.random2(0,1) => int choice;
+    if( choice )
+        wr.sub_chunk( chunk_id );
+    else
+        wr.chunk_in_order( chunk_id );
+}
