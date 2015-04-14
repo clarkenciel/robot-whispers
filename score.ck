@@ -2,17 +2,10 @@
 // WORD SCRAMBLE 
 // generative score for robot_whispers.ck
 
-/*
 ["the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
 "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
  "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
   "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog" ]@=> string words[];
-  */
-["so","much","depends","upon","a","red","wheel","barrow","glazed","with","rain",
-    "water","beside","the","white","chickens","ghost","ghost","ghost","ghost",
-    "ghost","ghost","ghost","ghost","ghost","ghost","ghost","ghost","ghost",
-    "ghost","ghost","ghost","ghost","toast","toast","toast","toast","toast",
-    "toast"] @=> string words[];
 
 adc => FFT fft => blackhole;
 UAnaBlob blob;
@@ -37,6 +30,7 @@ for( 3 => int i; i > 0; i-- ) {
 }
 now => runStart;
 //----------------PIECE--------------------
+
 while( words.size() > 0  ) {
     words[wIdx] => word;
     sums.size( word.length() );
@@ -103,12 +97,10 @@ while( words.size() > 0  ) {
             Math.random2(0, words.size()-1) => wIdx;
     }
 
-/*
     chout <= "\n\tPHRASE:\n\t";
     for( int i; i < words.size(); i ++ ) {
         chout <= words[i] + ", ";
     }
-    */
     chout <= "\n\t---------------------------\n";chout.flush();
     pCount++;
 }
