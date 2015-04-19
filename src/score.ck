@@ -10,6 +10,7 @@
 words.size() => int start_size;
 int chunk_idx[start_size][0]; // indexes words to chunks
 5::minute => dur whisper_dur;
+dur t_count;
 
 if( me.args() )
     Std.atof(me.arg(0))::minute => whisper_dur;
@@ -75,7 +76,7 @@ while( words.size() > 0  ) {
     we.broadcast();
 
     // choose chunk to play 
-    if( /* some condition pertaining to the list of words*/ wr.chunks.size() > 1 && chunk_idx[wIdx].size()-1 >= 0 ) {
+    if( t_count >= whisper_dur &&  wr.chunks.size() > 1 && chunk_idx[wIdx].size()-1 >= 0 ) {
         Math.random2(0, chunk_idx[wIdx].size()-1) => chunk_choice;        
         spork ~ play_whisper( chunk_idx[wIdx][chunk_choice] );
     }
@@ -135,6 +136,7 @@ while( words.size() > 0  ) {
     chout <= "\n\t---------------------------\n";chout.flush();
    
     pCount++;
+    div::second +=> t_count;
 }
 
 now => runEnd;

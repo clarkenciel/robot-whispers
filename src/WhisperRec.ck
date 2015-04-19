@@ -1,5 +1,24 @@
 public class WhisperRec extends Chubgraph {
-    adc => LiSa l => dac;
+    adc => LiSa l => FFT fft => blackhole;
+    IFFT ifft => BPF b => dac;
+    TriOsc t => blackhole;
+    TriOsc t2 => blackhole;
+    
+    t.freq( 0.1 );
+    t.gain( 10 );
+    t2.freq( 0.1 );
+    t2.gain( 250 );
+    t2.phase( 0.5 * pi );
+    500 => float bFreq => b.freq;
+
+    4 => fft.size => int FFT_SIZE => int HOP_SIZE;
+    while( HOP_SIZE <= 2 ) 4 *=> HOP_SIZE;
+    
+    Windowing.hann(FFT_SIZE/2) => fft.window;
+
+    UAnaBlob blob;
+    complex Z[FFT_SIZE/2];
+    
     dur chunks[0][0]; // store chunks of recordings
     dur start, stop;
     int start_idx;
@@ -65,7 +84,16 @@ public class WhisperRec extends Chubgraph {
         //<<< "playing:",start/second,"to",stop/second,"">>>;
         l.playPos( start );
         l.play(1);
-        (stop-start) => now;
+        (stop - start) + now => time later;
+        while( now < later ) {
+            fft.upchuck() @=> blob;
+            blob.cvals() @=> Z;
+            ifft.transform(Z);
+
+            Math.fabs(t.last()) + 1 => b.Q;
+            Math.fabs(t2.last()) + bFreq => b.freq;
+            HOP_SIZE::samp => now;
+        }
         l.play(0);
     }
 }
