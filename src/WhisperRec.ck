@@ -11,7 +11,7 @@ public class WhisperRec extends Chubgraph {
         l.duration( duration );
     }
     fun void chunk_in_order( int chunk_id ) {
-        <<< "chunk in order!","">>>;
+        //<<< "chunk in order!","">>>;
         chunks[chunk_id] @=> dur chunk[];
         l.rate(1);
         for( int i; i < chunk.size()-1; i++ )
@@ -20,7 +20,7 @@ public class WhisperRec extends Chubgraph {
     
     // play a random part of a chunk
     fun void sub_chunk( int chunk_id ) {
-        <<< "sub chunk!","" >>>;
+        //<<< "sub chunk!","" >>>;
         int chunk_idx, start_idx, end_idx, num_chunks;
         dur chunk[];
         chunks[chunk_id] @=> chunk;
@@ -62,7 +62,7 @@ public class WhisperRec extends Chubgraph {
     }
     
     fun void play( dur start, dur stop ) {
-        <<< "playing:",start/second,"to",stop/second,"">>>;
+        //<<< "playing:",start/second,"to",stop/second,"">>>;
         l.playPos( start );
         l.play(1);
         (stop-start) => now;

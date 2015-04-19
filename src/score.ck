@@ -1,11 +1,10 @@
 // score.ck 
 // WORD SCRAMBLE 
 // generative score for robot_whispers.ck
-
 ["the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
 "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
  "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
-  "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog" ]@=> string words[];
+"the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog" ]@=> string words[];
 
 
 words.size() => int start_size;
@@ -53,7 +52,7 @@ while( words.size() > 0  ) {
     word.length() * 0.25 => div;
     <<< "\n\tSay:\""+word+"\"\n\t...","">>>;
 
-    (div)::second => now; // wait to catch our breath
+    div::second => now; // wait to catch our breath
 
     now + div::second => later;
     ((div::second)/samp) $ int => frames;
@@ -64,11 +63,11 @@ while( words.size() > 0  ) {
     0 => c;
 
     for( 3 => int i; i > 0; i-- ) {
-        <<< i,". . .", "" >>>;
+        <<< "\t\t"+i,". . .", "" >>>;
         div::second => now;
     }
 
-    <<< "\n\t\t\t...NOW! ("+Std.ftoa(div,2)+" seconds)","" >>>;
+    <<< "\n\t\t...NOW! ("+Std.ftoa(div,2)+" seconds)","" >>>;
     // set up chunk recorder
     div::second => we.record_length;
     word.length() => we.record_size;
@@ -76,7 +75,7 @@ while( words.size() > 0  ) {
     we.broadcast();
 
     // choose chunk to play 
-    if( /* some condition pertaining to the list of words*/wr.chunks.size() > 1 && chunk_idx[wIdx].size()-1 >= 0 ) {
+    if( /* some condition pertaining to the list of words*/ wr.chunks.size() > 1 && chunk_idx[wIdx].size()-1 >= 0 ) {
         Math.random2(0, chunk_idx[wIdx].size()-1) => chunk_choice;        
         spork ~ play_whisper( chunk_idx[wIdx][chunk_choice] );
     }
@@ -110,8 +109,7 @@ while( words.size() > 0  ) {
 
     // grow max val letter 
     maxIdx + 1 => idx;
-    while( idx <= word.length() + 1 
-            && word.substring(maxIdx,1) == word.substring(idx%word.length(),1) )
+    while( idx <= word.length() + 1 && word.substring(maxIdx,1) == word.substring(idx%word.length(),1) )
         idx++;
 
     if( idx > word.length() + 1 && words.size() > 1 ) {
@@ -135,6 +133,7 @@ while( words.size() > 0  ) {
         chout <= words[i] + ", ";
     }
     chout <= "\n\t---------------------------\n";chout.flush();
+   
     pCount++;
 }
 
@@ -147,7 +146,7 @@ fun void record_listen( WhisperEvent e ) {
     while( true ) {
         e => now;
         wr.record_chunk(e.record_length, e.record_size);
-        <<< e.chunk_id, chunk_idx.size(), "" >>>;
+        //<<< e.chunk_id, chunk_idx.size(), "" >>>;
         chunk_idx[e.chunk_id] << wr.chunks.size()-1;
     }
 }
