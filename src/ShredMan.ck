@@ -10,7 +10,7 @@ public class ShredMan {
             Shred.fromId( shred[i] ).exit();
             if( shred.size() > 1 ) {
                 for( i => int j; j < shred.size()-1; j++ ) {
-                    shred[j] @=> shred[j+1];
+                    shred[j+1] @=> shred[j];
                 }
             }
             shred.size( shred.size() - 1 );
