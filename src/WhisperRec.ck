@@ -1,6 +1,6 @@
 public class WhisperRec extends Chubgraph {
     adc => LiSa l => FFT fft => blackhole;
-    IFFT ifft => BPF b => dac;
+    IFFT ifft => BPF b =>  dac;
     TriOsc t => blackhole;
     TriOsc t2 => blackhole;
     
@@ -29,34 +29,44 @@ public class WhisperRec extends Chubgraph {
     fun void init( dur duration ) {
         l.duration( duration );
     }
-    fun void chunk_in_order( int chunk_id ) {
+    fun void chunk_in_order( int chunk_id, ShredMan sm ) {
         //<<< "chunk in order!","">>>;
+        sm.add_shred( me.id() );
+
         chunks[chunk_id] @=> dur chunk[];
         l.rate(1);
-        for( int i; i < chunk.size()-1; i++ )
-            play( chunk[i], chunk[i+1] );
+
+        while( true ) {
+            for( int i; i < chunk.size()-1; i++ ){
+                play( chunk[i], chunk[i+1] );
+            }
+        }
     }
     
     // play a random part of a chunk
-    fun void sub_chunk( int chunk_id ) {
+    fun void sub_chunk( int chunk_id, ShredMan sm ) {
         //<<< "sub chunk!","" >>>;
+        sm.add_shred( me.id() );
+
         int chunk_idx, start_idx, end_idx, num_chunks;
         dur chunk[];
         chunks[chunk_id] @=> chunk;
         chunk.size() => num_chunks;
-        
-        for( int i; i < num_chunks; i++ ) {
-            while( start_idx == end_idx ) {
-                Math.random2(0, num_chunks-1) => start_idx;
-                Math.random2(0, num_chunks-1) => end_idx;
-            }
 
-            if( end_idx > start_idx ) {
-                l.rate(1);
-                play( chunk[start_idx], chunk[end_idx] );
-            } else {
-                l.rate(-1);
-                play( chunk[end_idx], chunk[start_idx] );
+        while( true ) { 
+            for( int i; i < num_chunks; i++ ) {
+                while( start_idx == end_idx ) {
+                    Math.random2(0, num_chunks-1) => start_idx;
+                    Math.random2(0, num_chunks-1) => end_idx;
+                }
+    
+                if( end_idx > start_idx ) {
+                    l.rate(1);
+                    play( chunk[start_idx], chunk[end_idx] );
+                } else {
+                    l.rate(-1);
+                    play( chunk[end_idx], chunk[start_idx] );
+                }
             }
         }
     }

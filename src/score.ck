@@ -1,15 +1,15 @@
 // score.ck 
 // WORD SCRAMBLE 
 // generative score for robot_whispers.ck
-["the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
-"the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
- "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog",
-"the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog" ]@=> string words[];
-
+["Although","the","content","represents","your","concepts","theres","a","structural",
+"relationship","between","that","content",
+"entities","that","should","represent",
+"the","relationship","between","the","concepts",
+"of","human","thought"] @=> string words[];
 
 words.size() => int start_size;
 int chunk_idx[start_size][0]; // indexes words to chunks
-5::minute => dur whisper_dur;
+3::minute => dur whisper_dur;
 dur t_count;
 
 if( me.args() )
@@ -19,6 +19,7 @@ else
 
 WhisperRec wr;
 WhisperEvent we;
+ShredMan sm;
 
 wr.init(whisper_dur);
 adc => FFT fft => blackhole;
@@ -48,6 +49,7 @@ now => runStart;
 spork ~ record_listen( we );
 
 while( words.size() > 0  ) {
+    sm.print_shreds();
     words[wIdx] => word;
     sums.size( word.length() );
     word.length() * 0.25 => div;
@@ -55,8 +57,7 @@ while( words.size() > 0  ) {
 
     div::second => now; // wait to catch our breath
 
-    now + div::second => later;
-    ((div::second)/samp) $ int => frames;
+    (div::second/samp) $ int => frames;
     frames/word.length() => N => win => fft.size;
     Windowing.hamming(N) => fft.window;
 
@@ -67,7 +68,6 @@ while( words.size() > 0  ) {
         <<< "\t\t"+i,". . .", "" >>>;
         div::second => now;
     }
-
     <<< "\n\t\t...NOW! ("+Std.ftoa(div,2)+" seconds)","" >>>;
     // set up chunk recorder
     div::second => we.record_length;
@@ -76,11 +76,13 @@ while( words.size() > 0  ) {
     we.broadcast();
 
     // choose chunk to play 
-    if( t_count >= whisper_dur &&  wr.chunks.size() > 1 && chunk_idx[wIdx].size()-1 >= 0 ) {
+    if( wr.chunks.size() > 1 && chunk_idx[wIdx].size()-1 >= 0 ) {
         Math.random2(0, chunk_idx[wIdx].size()-1) => chunk_choice;        
-        spork ~ play_whisper( chunk_idx[wIdx][chunk_choice] );
+        spork ~ play_whisper( chunk_idx[wIdx][chunk_choice], sm );
+        sm.kill_shred(0);
     }
 
+    now + div::second => later;
     while( now < later ) {
         win::samp => now;
 
@@ -123,7 +125,7 @@ while( words.size() > 0  ) {
     } else {
         word.replace( idx % word.length(), 1, word.substring(maxIdx,1) );
         word @=> words[ wIdx ];
-        if( pCount < 9 )
+        if( pCount < words.size() )
             (wIdx+1)%words.size() => wIdx;
         else
             Math.random2(0, words.size()-1) => wIdx;
@@ -153,10 +155,10 @@ fun void record_listen( WhisperEvent e ) {
     }
 }
 
-fun void play_whisper( int chunk_id ) {
+fun void play_whisper( int chunk_id, ShredMan se ) {
     Math.random2(0,1) => int choice;
     if( choice )
-        wr.sub_chunk( chunk_id );
+        wr.sub_chunk( chunk_id, se );
     else
-        wr.chunk_in_order( chunk_id );
+        wr.chunk_in_order( chunk_id, se );
 }
